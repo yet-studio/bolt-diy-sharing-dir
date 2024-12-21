@@ -1,0 +1,30 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Fonction helper pour vérifier les permissions dans Firestore
+    function hasFilePermission(fileId, permission) {
+      let file = firestore.get(/databases/(default)/documents/files/$(fileId));
+      return permission == 'read' 
+        ? request.auth.uid in file.data.permissions.read
+        : request.auth.uid in file.data.permissions.write;
+    }
+
+    // Règles pour les fichiers
+    match /files/{fileId}/{fileName} {
+      // Lecture : l'utilisateur doit avoir la permission de lecture sur le fichier
+      allow read: if request.auth != null && hasFilePermission(fileId, 'read');
+      
+      // Création : l'utilisateur doit avoir la permission d'écriture
+      allow create: if request.auth != null 
+        && hasFilePermission(fileId, 'write')
+        && request.resource.size < 100 * 1024 * 1024 // Limite de 100MB
+        && request.resource.contentType.matches('image/.*|application/pdf|text/.*');
+      
+      // Mise à jour : l'utilisateur doit avoir la permission d'écriture
+      allow update: if request.auth != null && hasFilePermission(fileId, 'write');
+      
+      // Suppression : l'utilisateur doit avoir la permission d'écriture
+      allow delete: if request.auth != null && hasFilePermission(fileId, 'write');
+    }
+  }
+}

@@ -9,10 +9,18 @@ export default defineConfig((config) => {
   return {
     build: {
       target: 'esnext',
+      commonjsOptions: {
+        transformMixedEsModules: true,
+      },
     },
     plugins: [
       nodePolyfills({
-        include: ['path', 'buffer'],
+        include: ['buffer', 'fs', 'stream', 'util', 'events'],
+        globals: {
+          Buffer: true,
+          global: true,
+          process: true,
+        },
       }),
       config.mode !== 'test' && remixCloudflareDevProxy(),
       remixVitePlugin({
@@ -35,6 +43,15 @@ export default defineConfig((config) => {
           api: 'modern-compiler',
         },
       },
+    },
+    optimizeDeps: {
+      esbuildOptions: {
+        target: 'esnext',
+      },
+      include: ['react-dropzone'],
+    },
+    resolve: {
+      dedupe: ['react', 'react-dom'],
     },
   };
 });

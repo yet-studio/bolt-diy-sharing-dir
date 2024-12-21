@@ -1,10 +1,10 @@
 import { memo, useEffect, useState } from 'react';
 
 interface LoadingDotsProps {
-  text: string;
+  text?: string;
 }
 
-export const LoadingDots = memo(({ text }: LoadingDotsProps) => {
+export const LoadingDots: React.FC<LoadingDotsProps> = memo(({ text = "Loading..." }: LoadingDotsProps) => {
   const [dotCount, setDotCount] = useState(0);
 
   useEffect(() => {
